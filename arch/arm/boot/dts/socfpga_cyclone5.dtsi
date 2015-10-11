@@ -38,6 +38,81 @@
 			cap-sd-highspeed;
 		};
 
+		fpgamgr@0xff706000 {
+			compatible = "altr,fpga-mgr-1.0", "altr,fpga-mgr";
+			transport = "mmio";
+			reg = <0xff706000 0x1000 0xffb90000 0x1000>;
+			interrupts = <0x0 0xaf 0x4>;
+		};
+
+		fpgabridge@0 {
+			compatible = "altr,socfpga-hps2fpga-bridge";
+			label = "hps2fpga";
+			clocks = <&l4_main_clk>;
+		};
+
+		fpgabridge@1 {
+			compatible = "altr,socfpga-lwhps2fpga-bridge";
+			label = "lwhps2fpga";
+			clocks = <&l4_main_clk>;
+		};
+
+		fpgabridge@2 {
+			compatible = "altr,socfpga-fpga2hps-bridge";
+			label = "fpga2hps";
+			clocks = <&l4_main_clk>;
+		};
+
+		hps_0_h2f_lw: bridge@0xff200000 {
+			compatible = "altr,h2f_lw_bridge-1.0", "simple-bus";
+			reg = < 0xFF200000 0x00200000 >;
+			#address-cells = < 1 >;
+			#size-cells = < 1 >;
+			ranges = < 0x00000100 0xFF200100 0x00000080
+				   0x00000200 0xFF200200 0x00000080
+				   0x00000300 0xFF200300 0x00000080 >;
+
+			alt_vip_vfr_1: vip@0x100 {
+				compatible = "ALTR,vip-frame-reader-13.0", "ALTR,vip-frame-reader-9.1";
+				reg = < 0x00000100 0x00000080 >;
+				max-width = < 1024 >;
+				max-height = < 768 >;
+				mem-word-width = < 128 >;
+				bits-per-color = < 8 >;
+			};
+
+			mbox_tx: mailbox@0x200 {
+				compatible = "altr,mailbox-1.0";
+				reg = <0x200 0x8>;
+				interrupt-parent = < &intc >;
+				interrupts = <5>;
+				#mbox-cells = <1>;
+			};
+
+			mbox_rx: mailbox@0x300 {
+				compatible = "altr,mailbox-1.0";
+				reg = <0x300 0x8>;
+				interrupt-parent = < &intc >;
+				interrupts = <0 40 1>;
+				#mbox-cells = <1>;
+			};
+			mclient0: mclient0@0x0x400 {
+				compatible = "client-1.0";
+				mbox-names = "mbox-tx", "mbox-rx";
+				mboxes = <&mbox_tx 0>,
+						<&mbox_rx 0>;
+			};
+
+		};
+
+		hps_0_h2f: hps_fpga_bridge@0xC0000000 {
+			compatible = "altr,h2f_bridge-1.0", "simple-bus";
+			reg = < 0xC0000000 0xC9000000 >;
+			#address-cells = < 1 >;
+			#size-cells = < 1 >;
+			ranges = < 0x8000000 0xC8000000 0x00004000 >;
+		};
+
 		ethernet@ff702000 {
 			phy-mode = "rgmii";
 			phy-addr = <0xffffffff>; /* probe for phy addr */
